@@ -1,0 +1,26 @@
+#graphic {
+	background: none;
+	font-family: sans-serif;
+}
+
+.chartAxis {
+	fill: darkOrange;
+	font-size: 14px;
+	font-weight: bold;
+	text-anchor: middle;
+}
+
+.chartTitle {
+	fill: black;
+	font-size: 18px;
+	font-weight: bold;
+	text-anchor: middle;
+}
+
+.cpInlayText {
+	fill: black;
+	font-size: 12px;
+	font-weight: bold;
+	text-anchor: end;
+	alignment-baseline: middle;
+}

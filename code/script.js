@@ -18,7 +18,7 @@ var rowConverter = function(d) {
 } 
 
 var ticker = "./data/TSLA";
-var ticker = "./data/SUPN";
+//var ticker = "./data/SUPN";
 
 d3.csv(ticker + ".csv", rowConverter, function(data) {
 	
