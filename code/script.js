@@ -2,10 +2,16 @@
 
 var parseDate = d3.timeParse("%Y-%m-%d");
 
-var width = 1000
-var height = 500
+var width = 1000,
+	height = 500,
+	//reveal x axis
+	xAxisSpace = 70,
+	xLabelSpace = 10,
+	//add label names
+	xlabel = "Date",
+    ylabel = "Price";
 
-var margin = ({top: 0, right: 30, bottom: 0, left: 30}),
+var margin = ({top: 0, right: 30, bottom: 0, left: 75}),
       iwidth = width - margin.left - margin.right,
       iheight = height - margin.top - margin.bottom;
 
@@ -18,12 +24,13 @@ var rowConverter = function(d) {
 } 
 
 var ticker = "./data/TSLA";
-//var ticker = "./data/SUPN";
+var ticker = "./data/SUPN";
 
 d3.csv(ticker + ".csv", rowConverter, function(data) {
 	
 	var dataset = data;
 
+    // set X and Y axis scale
 	var xScale = d3.scaleTime()
 		.domain([
 			d3.min(dataset, function(d) { return d.date }), 
@@ -46,7 +53,7 @@ d3.csv(ticker + ".csv", rowConverter, function(data) {
 	var svg = d3.select("body")
 		.append("svg")
 		.attr("width", iwidth)
-		.attr("height", iheight)
+		.attr("height", iheight + xAxisSpace + xLabelSpace) //reveal x axis and label
 	        .append("g")
 	        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -65,8 +72,6 @@ d3.csv(ticker + ".csv", rowConverter, function(data) {
 		.attr("class", "y axis")
 		.call(d3.axisLeft(yScale));
 
-
-
 	svg.append("path")
 		.datum(dataset)
 		.attr("class", "line")
@@ -74,6 +79,23 @@ d3.csv(ticker + ".csv", rowConverter, function(data) {
 	        .attr("stroke", "steelblue")
 	        .attr("fill", "none")
                 .attr("stroke-width", "6");
+
+    svg.append("text")             
+  		.classed("chartAxis", true)
+  		.attr("y", height + xAxisSpace + 5)
+      	.attr("x", width / 2)
+        .text(xlabel)
+        .attr("id","xlabel")
+    ;
+
+    svg.append("text")
+       	.classed("chartAxis", true)
+      	.attr("transform", "rotate(-90)")
+      	.attr("y", -60)
+      	.attr("x", -height / 2)
+      	.text(ylabel)
+        .attr("id","ylabel")
+    ;
 });
 
 
