@@ -7,11 +7,20 @@ var width = 1000,
 	//reveal x axis
 	xAxisSpace = 70,
 	xLabelSpace = 10,
+	//reveal y axis
+	yAxisSpace = 70,
+	yLabelSpace = 10,
 	//add label names
 	xlabel = "Date",
-    ylabel = "Price";
+    ylabel = "Price",
+    //add button sizes
+    buttonh = 10, 
+    buttonw = 10,
+    //reveal buttons
+    buttonSpace = 100
+;
 
-var margin = ({top: 0, right: 30, bottom: 0, left: 75}),
+var margin = ({top: 0, right: 0, bottom: 0, left: 0}),
       iwidth = width - margin.left - margin.right,
       iheight = height - margin.top - margin.bottom;
 
@@ -25,6 +34,14 @@ var rowConverter = function(d) {
 
 var ticker = "./data/TSLA";
 var ticker = "./data/SUPN";
+
+//get list of available tickers
+//d3.csv(tickersector.csv, rowConverter, function(data) {
+	
+//	var tickers = data;
+
+//});
+
 
 d3.csv(ticker + ".csv", rowConverter, function(data) {
 	
@@ -52,10 +69,12 @@ d3.csv(ticker + ".csv", rowConverter, function(data) {
 
 	var svg = d3.select("body")
 		.append("svg")
-		.attr("width", iwidth)
-		.attr("height", iheight + xAxisSpace + xLabelSpace) //reveal x axis and label
+		.attr("width", iwidth + yAxisSpace + yLabelSpace + buttonSpace) 
+		// yAxisSpace, yLabelSpace and buttonSpace reveals each
+		.attr("height", iheight + xAxisSpace + xLabelSpace) 
+		//xAxisSpace and xLabelSpace reveal x axis and label
 	        .append("g")
-	        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+	        .attr("transform", "translate(" + yAxisSpace + "," + margin.top + ")");
 
 	svg.append("g")
 	        .attr("class", "x axis")
@@ -66,19 +85,22 @@ d3.csv(ticker + ".csv", rowConverter, function(data) {
 			.style("text-anchor", "end")
 			.attr("dx", "-.8em")
 			.attr("dy", ".15em")
-			.attr("transform", "rotate(-65)");
+			.attr("transform", "rotate(-65)")
+	;
 
 	svg.append("g")
 		.attr("class", "y axis")
-		.call(d3.axisLeft(yScale));
+		.call(d3.axisLeft(yScale))
+	;
 
 	svg.append("path")
 		.datum(dataset)
 		.attr("class", "line")
 		.attr("d", line)
-	        .attr("stroke", "steelblue")
-	        .attr("fill", "none")
-                .attr("stroke-width", "6");
+	    .attr("stroke", "steelblue")
+	    .attr("fill", "none")
+        .attr("stroke-width", "6")
+    ;
 
     svg.append("text")             
   		.classed("chartAxis", true)
@@ -96,6 +118,42 @@ d3.csv(ticker + ".csv", rowConverter, function(data) {
       	.text(ylabel)
         .attr("id","ylabel")
     ;
+
+    // make a button for each stock
+    tickNum = 0 // will have this driven by a function later to catch each ticker
+    svg.append("rect")
+        .attr('fill', "rgb(200,200,200)")
+        .attr("y", tickNum*15)
+        .attr("x", width+10)
+        .attr("width", buttonw)
+        .attr("height", buttonh)
+        .on('mouseover', tickerButtonmOver)
+        .on('mouseout', tickerButtonmOut)
+        .on('click', function(){
+          cpInlayClick('tickerButtonClick')
+          ;
+        })
+
+    function tickerButtonmOver (d, i) {
+        d3.select(this)
+          .transition()
+          .duration('50')
+          .attr('opacity', '.5')
+        ;
+    };
+
+    function tickerButtonmOut (d, i) {
+        d3.select(this).transition()
+          .duration('50')
+          .attr('opacity', '1');
+    };
+
+    // function for click
+    function tickerButtonClick () {
+        //code
+        ;
+    
+    };     
 });
 
 
