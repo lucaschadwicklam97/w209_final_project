@@ -24,11 +24,11 @@ var margin = ({top: 0, right: 0, bottom: 0, left: 0}),
       iwidth = width - margin.left - margin.right,
       iheight = height - margin.top - margin.bottom;
 
-var parseDate = d3.timeParse("%Y-%m-%d");
+var parseDate = d3.timeParse("%m/%d/%y");
 
 var rowConverter = function(d) {
     return {
-        date: parseDate(d.date), price: parseFloat(d.price)
+        date: parseDate(d.date), NFLX: parseFloat(d.NFLX)
     };
 } 
 
@@ -43,10 +43,10 @@ var ticker = "./data/SUPN";
 //});
 
 
-d3.csv(ticker + ".csv", rowConverter, function(data) {
+d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	
 	var dataset = data;
-
+	console.log(dataset)
     // set X and Y axis scale
 	var xScale = d3.scaleTime()
 		.domain([
@@ -57,14 +57,14 @@ d3.csv(ticker + ".csv", rowConverter, function(data) {
 
 	var yScale = d3.scaleLinear()
 		.domain([
-			d3.min(dataset, function(d) { return d.price }),
-		d3.max(dataset, function(d) { return d.price })
+			d3.min(dataset, function(d) { return d.NFLX }),
+		d3.max(dataset, function(d) { return d.NFLX })
 		])
 		.range([iheight, 0]);
 	
 	var line = d3.line()
 		.x(function(d) { return xScale(d.date); })
-		.y(function(d) { return yScale(d.price); })
+		.y(function(d) { return yScale(d.NFLX); })
                 .curve(d3.curveMonotoneX); 
 
 	var svg = d3.select("body")
