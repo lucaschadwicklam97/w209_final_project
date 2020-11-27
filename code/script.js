@@ -26,14 +26,29 @@ var margin = ({top: 0, right: 0, bottom: 0, left: 0}),
 
 var parseDate = d3.timeParse("%m/%d/%y");
 
+var tickers = ['AMZN', 'FB', 'GOOGL', 'HZNP', 'MRNA', 'NFLX', 'NKTR', 'SUPN', 'TSLA', 'ZGNX']
+
+var count = d3.set(tickers).size();
+
 var rowConverter = function(d) {
     return {
-        date: parseDate(d.date), NFLX: parseFloat(d.NFLX)
+        date: parseDate(d.date), 
+        AMZN: parseFloat(d[tickers[0]]),
+        FB: parseFloat(d[tickers[1]]),
+        GOOGL: parseFloat(d[tickers[2]]),
+        HZNP: parseFloat(d[tickers[3]]),
+        MRNA: parseFloat(d[tickers[4]]),
+        NFLX: parseFloat(d[tickers[5]]),
+        NKTR: parseFloat(d[tickers[6]]),
+        SUPN: parseFloat(d[tickers[7]]),
+        TSLA: parseFloat(d[tickers[8]]),
+        ZGNX: parseFloat(d[tickers[9]]),
+
     };
 } 
 
-var ticker = "./data/TSLA";
-var ticker = "./data/SUPN";
+//var ticker = "./data/TSLA";
+//var ticker = "./data/SUPN";
 
 //get list of available tickers
 //d3.csv(tickersector.csv, rowConverter, function(data) {
@@ -44,9 +59,12 @@ var ticker = "./data/SUPN";
 
 
 d3.csv("./data/stockdata.csv", rowConverter, function(data) {
-	
-	var dataset = data;
-	console.log(dataset)
+
+	var dataset = data,
+		//set starting ticker
+		price = "TSLA"
+	;
+
     // set X and Y axis scale
 	var xScale = d3.scaleTime()
 		.domain([
@@ -57,14 +75,14 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
 	var yScale = d3.scaleLinear()
 		.domain([
-			d3.min(dataset, function(d) { return d.NFLX }),
-		d3.max(dataset, function(d) { return d.NFLX })
+			d3.min(dataset, function(d) { return d[price] }),
+		d3.max(dataset, function(d) { return d[price] })
 		])
 		.range([iheight, 0]);
 	
 	var line = d3.line()
 		.x(function(d) { return xScale(d.date); })
-		.y(function(d) { return yScale(d.NFLX); })
+		.y(function(d) { return yScale(d[price]); })
                 .curve(d3.curveMonotoneX); 
 
 	var svg = d3.select("body")
@@ -99,7 +117,8 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 		.attr("d", line)
 	    .attr("stroke", "steelblue")
 	    .attr("fill", "none")
-        .attr("stroke-width", "6")
+        .attr("stroke-width", "1")
+        .attr("class", "clickDelete")
     ;
 
     svg.append("text")             
@@ -120,24 +139,31 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
     ;
 
     // make a button for each stock
-    function makeButtons (d, i) {
+    for(var i = 0; i < count; ++i) {
 
-	    tickNum = 0 // will have this driven by a function later to catch each ticker
-	    
 	    svg.append("rect")
 	        .attr('fill', "rgb(200,200,200)")
 	        .attr("y", i*15)
 	        .attr("x", width+10)
 	        .attr("width", buttonw)
 	        .attr("height", buttonh)
+	        //.attr("id", function(d, i) { return 'name'+i; })
 	        .on('mouseover', tickerButtonmOver)
 	        .on('mouseout', tickerButtonmOut)
 	        .on('click', function(){
-	          cpInlayClick('tickerButtonClick')
-	          ;
+	        	tickerButtonClick(d3.select(this).attr("y")/15)
+	        	;
 	        })
+	    ;
+
+	    svg.append("text")
+            .attr("y", i*15 +10)
+            .attr("x", width + buttonw + 20)
+            .text(tickers[i])
+        ;
     }
 
+    // add functions for mouseover and mouseout
     function tickerButtonmOver (d, i) {
         d3.select(this)
           .transition()
@@ -149,15 +175,43 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
     function tickerButtonmOut (d, i) {
         d3.select(this).transition()
           .duration('50')
-          .attr('opacity', '1');
+          .attr('opacity', '1')
+        ;
     };
 
-    // function for click
+    // add function for click
     function tickerButtonClick () {
-        //code
-        ;
-    
-    };     
+        price = tickers[arguments[0]];
+        t = price
+		//t = update(t);
+		console.log(t, price);
+
+		var yScale = d3.scaleLinear()
+			.domain([
+				d3.min(dataset, function(d) { return d[price] }),
+			d3.max(dataset, function(d) { return d[price] })
+			])
+			.range([iheight, 0])
+		;
+		
+		var line = d3.line()
+			.x(function(d) { return xScale(d.date); })
+			.y(function(d) { return yScale(d[price]); })
+	                .curve(d3.curveMonotoneX)
+	    ; 
+        
+        d3.selectAll(".clickDelete").remove();
+		
+		svg.append("path")
+			.datum(dataset)
+			.attr("class", "line")
+			.attr("d", line)
+		    .attr("stroke", "steelblue")
+		    .attr("fill", "none")
+	        .attr("stroke-width", "1")
+	        .attr("class", "clickDelete")
+	    ;
+    };
 });
 
 
