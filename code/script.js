@@ -120,19 +120,23 @@ d3.csv(ticker + ".csv", rowConverter, function(data) {
     ;
 
     // make a button for each stock
-    tickNum = 0 // will have this driven by a function later to catch each ticker
-    svg.append("rect")
-        .attr('fill', "rgb(200,200,200)")
-        .attr("y", tickNum*15)
-        .attr("x", width+10)
-        .attr("width", buttonw)
-        .attr("height", buttonh)
-        .on('mouseover', tickerButtonmOver)
-        .on('mouseout', tickerButtonmOut)
-        .on('click', function(){
-          cpInlayClick('tickerButtonClick')
-          ;
-        })
+    function makeButtons (d, i) {
+
+	    tickNum = 0 // will have this driven by a function later to catch each ticker
+	    
+	    svg.append("rect")
+	        .attr('fill', "rgb(200,200,200)")
+	        .attr("y", i*15)
+	        .attr("x", width+10)
+	        .attr("width", buttonw)
+	        .attr("height", buttonh)
+	        .on('mouseover', tickerButtonmOver)
+	        .on('mouseout', tickerButtonmOut)
+	        .on('click', function(){
+	          cpInlayClick('tickerButtonClick')
+	          ;
+	        })
+    }
 
     function tickerButtonmOver (d, i) {
         d3.select(this)
