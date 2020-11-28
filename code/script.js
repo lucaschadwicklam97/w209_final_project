@@ -47,22 +47,11 @@ var rowConverter = function(d) {
     };
 } 
 
-//var ticker = "./data/TSLA";
-//var ticker = "./data/SUPN";
-
-//get list of available tickers
-//d3.csv(tickersector.csv, rowConverter, function(data) {
-	
-//	var tickers = data;
-
-//});
-
-
 d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
 	var dataset = data,
 		//set starting ticker
-		price = "TSLA"
+		price = "AMZN"
 	;
 
     // set X and Y axis scale
@@ -76,7 +65,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	var yScale = d3.scaleLinear()
 		.domain([
 			d3.min(dataset, function(d) { return d[price] }),
-		d3.max(dataset, function(d) { return d[price] })
+			d3.max(dataset, function(d) { return d[price] })
 		])
 		.range([iheight, 0]);
 	
@@ -91,19 +80,21 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 		// yAxisSpace, yLabelSpace and buttonSpace reveals each
 		.attr("height", iheight + xAxisSpace + xLabelSpace) 
 		//xAxisSpace and xLabelSpace reveal x axis and label
-	        .append("g")
-	        .attr("transform", "translate(" + yAxisSpace + "," + margin.top + ")");
+	    .append("g")
+	    .attr("transform", "translate(" + yAxisSpace + "," + margin.top + ")");
 
 	svg.append("g")
-	        .attr("class", "x axis")
-	        .attr("transform", "translate(0, 500)")
+	    .attr("class", "x axis")
+	    .attr("transform", "translate(0, 500)")
 		.call(d3.axisBottom(xScale)
-			.tickFormat(d3.timeFormat("%Y-%m-%d")))
+		.tickFormat(d3.timeFormat("%Y-%m-%d")))
 		.selectAll("text")
-			.style("text-anchor", "end")
-			.attr("dx", "-.8em")
-			.attr("dy", ".15em")
-			.attr("transform", "rotate(-65)")
+		.style("text-anchor", "end")
+		.attr("dx", "-.8em")
+		.attr("dy", ".15em")
+		.attr("transform", "rotate(-65)")
+		.attr("class", "clickDelete")
+
 	;
 
 	svg.append("g")
@@ -151,6 +142,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	        .on('mouseover', tickerButtonmOver)
 	        .on('mouseout', tickerButtonmOut)
 	        .on('click', function(){
+	        	// get the index of the button by dividing y by 15 d3.select(this).attr("y")/15 
 	        	tickerButtonClick(d3.select(this).attr("y")/15)
 	        	;
 	        })
@@ -178,22 +170,31 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
           .attr('opacity', '1')
         ;
     };
-
     // add function for click
     function tickerButtonClick () {
         price = tickers[arguments[0]];
-        t = price
-		//t = update(t);
-		console.log(t, price);
+        t = price;
 
 		var yScale = d3.scaleLinear()
 			.domain([
 				d3.min(dataset, function(d) { return d[price] }),
-			d3.max(dataset, function(d) { return d[price] })
+				d3.max(dataset, function(d) { return d[price] })
 			])
 			.range([iheight, 0])
 		;
-		
+
+		// this allows d3.min in xScale to get the lowest date for each ticker
+		var filteredDates = dataset.filter(function(d){
+			return d[price]>0
+		});
+
+		var xScale = d3.scaleTime()
+			.domain([
+				d3.min(filteredDates, function(d) { return d.date }),
+				d3.max(dataset, function(d) { return d.date })
+			])
+			.range([width - iwidth, iwidth]);
+
 		var line = d3.line()
 			.x(function(d) { return xScale(d.date); })
 			.y(function(d) { return yScale(d[price]); })
@@ -211,6 +212,19 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	        .attr("stroke-width", "1")
 	        .attr("class", "clickDelete")
 	    ;
+
+	    svg.append("g")
+		    .attr("class", "x axis")
+		    .attr("transform", "translate(0, 500)")
+			.call(d3.axisBottom(xScale)
+			.tickFormat(d3.timeFormat("%Y-%m-%d")))
+			.selectAll("text")
+			.style("text-anchor", "end")
+			.attr("dx", "-.8em")
+			.attr("dy", ".15em")
+			.attr("transform", "rotate(-65)")
+			.attr("class", "clickDelete")
+	;
     };
 });
 
