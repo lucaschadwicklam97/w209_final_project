@@ -224,8 +224,41 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 			.attr("dy", ".15em")
 			.attr("transform", "rotate(-65)")
 			.attr("class", "clickDelete")
-	;
+		;
     };
+	//add icons for news items
+	const annotations = [
+    
+    //{ dataset[price + "date"].forEach(function(d)
+    	{
+	      subject: {
+	        text: ">",
+	        // want them all below and off to the right
+	        y: "bottom",
+	        x: "right"
+	      },
+	      data: { x: "01/30/18", y: 300}
+	    //})
+    }]
+
+    const type = d3.annotationCustomType(
+      d3.annotationBadge, 
+      {"subject":{"radius": 10 }}
+    )
+
+    const makeAnnotations = d3.annotation()
+      .type(type)
+      //.accessors({ 
+      //  x: function(d){ return x(new Date(d.x))},
+      //  y: function(d){ return y(d.y) }
+      //})
+      .annotations(annotations)
+
+    d3.select("svg")
+      .append("g")
+      .attr("class", "annotation-group")
+      .call(makeAnnotations)
+
 });
 
 
