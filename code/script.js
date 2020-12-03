@@ -25,6 +25,7 @@ var margin = ({top: 0, right: 0, bottom: 0, left: 0}),
       iheight = height - margin.top - margin.bottom;
 
 var parseDate = d3.timeParse("%m/%d/%y");
+var formDate = d3.timeFormat("%m/%d/%y");
 
 var tickers = ['AMZN', 'FB', 'GOOGL', 'HZNP', 'MRNA', 'NFLX', 'NKTR', 'SUPN', 'TSLA', 'ZGNX']
 
@@ -43,7 +44,26 @@ var rowConverter = function(d) {
         SUPN: parseFloat(d[tickers[7]]),
         TSLA: parseFloat(d[tickers[8]]),
         ZGNX: parseFloat(d[tickers[9]]),
-
+        AMZNdate: parseDate(d[tickers[0]+"date"]),
+        FBdate: parseDate(d[tickers[1]+"date"]),
+        GOOGLdate: parseDate(d[tickers[2]+"date"]),
+        HZNPdate: parseDate(d[tickers[3]+"date"]),
+        MRNAdate: parseDate(d[tickers[4]+"date"]),
+        NFLXdate: parseDate(d[tickers[5]+"date"]),
+        NKTRdate: parseDate(d[tickers[6]+"date"]),
+        SUPNdate: parseDate(d[tickers[7]+"date"]),
+        TSLAdate: parseDate(d[tickers[8]+"date"]),
+        ZGNXdate: parseDate(d[tickers[9]+"date"]),
+        AMZNprice: parseFloat(d.AMZNprice),
+        FBprice: parseFloat(d.FBprice),
+        GOOGLprice: parseFloat(d.GOOGLprice),
+        HZNPprice: parseFloat(d.HZNPprice),
+        MRNAprice: parseFloat(d.MRNAprice),
+        NFLXprice: parseFloat(d.NFLXprice),
+        NKTRprice: parseFloat(d.NKTRprice),
+        SUPNprice: parseFloat(d.SUPNprice),
+        TSLAprice: parseFloat(d.TSLAprice),
+        ZGNXprice: parseFloat(d.ZGNXprice),    
     };
 } 
 
@@ -51,8 +71,28 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
 	var dataset = data,
 		//set starting ticker
-		price = "AMZN"
+		price = "AMZN",
+		newsdate = price+"date"
+		newsprice = price+"price"
 	;
+
+	//extract news
+	news = dataset.map(
+		function(d){
+			if (!isNaN(d[price])){
+				return {
+					"date": d[newsdate],
+					"price": d[newsprice]
+				}
+			}
+		}
+	);
+
+	//filter with Fereshteh
+	news = news.filter(function (d) {
+    return !isNaN(d.price);
+	});
+	console.log(news)
 
     // set X and Y axis scale
 	var xScale = d3.scaleTime()
@@ -68,7 +108,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 			d3.max(dataset, function(d) { return d[price] })
 		])
 		.range([iheight, 0]);
-	
+
 	var line = d3.line()
 		.x(function(d) { return xScale(d.date); })
 		.y(function(d) { return yScale(d[price]); })
@@ -110,6 +150,20 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	    .attr("fill", "none")
         .attr("stroke-width", "1")
         .attr("class", "clickDelete")
+    ;
+
+    //add circles for news
+    svg.selectAll("circle")
+    	.data(news)
+    	.enter()
+    	.append("circle")
+    	.attr("r", 5)
+    	.attr("cx", function(d,i){
+    		return xScale(d.date);
+    	})
+    	.attr("cy", function(d,i){
+    		return yScale(d.price);
+    	})
     ;
 
     svg.append("text")             
@@ -226,20 +280,16 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 			.attr("class", "clickDelete")
 		;
     };
+
 	//add icons for news items
 	const annotations = [
     
     //{ dataset[price + "date"].forEach(function(d)
-    	{
-	      subject: {
-	        text: ">",
-	        // want them all below and off to the right
-	        y: "bottom",
-	        x: "right"
-	      },
-	      data: { x: "01/30/18", y: 300}
-	    //})
-    }]
+    	news.forEach( function(d,i) {
+    		return'subject: {text: ">",y: "bottom",x: "right"}, data: { x: ' + news[i].date + ', y: '+ news[i].price +'}'
+    		;
+		})
+    ]
 
     const type = d3.annotationCustomType(
       d3.annotationBadge, 
