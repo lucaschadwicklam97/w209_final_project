@@ -64,6 +64,16 @@ var rowConverter = function(d) {
         SUPNprice: parseFloat(d.SUPNprice),
         TSLAprice: parseFloat(d.TSLAprice),
         ZGNXprice: parseFloat(d.ZGNXprice),    
+        AMZNnews: d.AMZNnews,
+        FBnews: d.FBnews,
+        GOOGLnews: d.GOOGLnews,
+        HZNPnews: d.HZNPnews,
+        MRNAnews: d.MRNAnews,
+        NFLXnews: d.NFLXnews,
+        NKTRnews: d.NKTRnews,
+        SUPNnews: d.SUPNnews,
+        TSLAnews: d.TSLAnews,
+        ZGNXnews: d.ZGNXnews, 
     };
 } 
 
@@ -72,8 +82,9 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	var dataset = data,
 		//set starting ticker
 		price = "AMZN",
-		newsdate = price+"date"
-		newsprice = price+"price"
+		newsdate = price+"date",
+		newsprice = price+"price",
+		newshead = price+"news"
 	;
 
 	//extract news
@@ -82,16 +93,19 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 			if (!isNaN(d[price])){
 				return {
 					"date": d[newsdate],
-					"price": d[newsprice]
+					"price": d[newsprice],
+					"head":d[newshead]
 				}
 			}
 		}
 	);
 
-	//filter with Fereshteh
-	news = news.filter(function (d) {
-    return !isNaN(d.price);
-	});
+	function boo(news) {
+		return news.filter(Boolean);
+	}
+
+
+	news = boo(news)
 	console.log(news)
 
     // set X and Y axis scale
@@ -162,8 +176,12 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
     		return xScale(d.date);
     	})
     	.attr("cy", function(d,i){
-    		return yScale(d.price);
+    		return yScale(d.price)+10;
     	})
+    	.style("fill", d3.color("steelblue") )
+    	.attr("class", "clickDelete")
+    	.on('mouseover', mOver)
+        .on('mouseout', mOut)
     ;
 
     svg.append("text")             
@@ -227,6 +245,8 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
     // add function for click
     function tickerButtonClick () {
         price = tickers[arguments[0]];
+        newsdate = price+"date";
+		newsprice = price+"price";
         t = price;
 
 		var yScale = d3.scaleLinear()
@@ -279,36 +299,79 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 			.attr("transform", "rotate(-65)")
 			.attr("class", "clickDelete")
 		;
+
+		news = dataset.map(
+			function(d){
+				if (!isNaN(d[price])){
+					return {
+						"date": d[newsdate],
+						"price": d[newsprice],
+						"head": d[newshead]
+					}
+				}
+			}
+		);
+
+		function boo(news) {
+			return news.filter(Boolean);
+		}
+
+
+		news = boo(news)
+
+		svg.selectAll("circle")
+	    	.data(news)
+	    	.enter()
+	    	.append("circle")
+	    	.attr("r", 5)
+	    	.attr("cx", function(d,i){
+	    		return xScale(d.date);
+	    	})
+	    	.attr("cy", function(d,i){
+	    		return yScale(d.price)+10;
+	    	})
+	    	.style("fill", d3.color("steelblue") )
+	    	.attr("class", "clickDelete")
+	    	.on('mouseover', mOver)
+            .on('mouseout', mOut)
+	    ;
+
+    };
+    //mouseover the news
+    function mOver (d, i) {
+        d3.select(this)
+          .transition()
+          .duration('50')
+          .style("fill", d3.color("lightblue") )
+        ;
+
+        d3.select(this)
+          .append("text")
+          //.style('fill-opacity', 1)
+          .text(function (d) {
+            console.log(d.head)
+            return d.head;
+          })
+	      .attr("y", function (d) {
+	        return yScale(d.price)+10;
+	      })
+	      .attr("x", function (d) {
+	        return xScale(d.date);
+	      })
+          .attr("class", "mOverDelete")
+        ;
+
+        
     };
 
-	//add icons for news items
-	const annotations = [
-    
-    //{ dataset[price + "date"].forEach(function(d)
-    	news.forEach( function(d,i) {
-    		return'subject: {text: ">",y: "bottom",x: "right"}, data: { x: ' + news[i].date + ', y: '+ news[i].price +'}'
-    		;
-		})
-    ]
+    function mOut (d, i) {
+        d3.select(this).transition()
+          .duration('50')
+          .style("fill", d3.color("steelblue") )
+        ;
 
-    const type = d3.annotationCustomType(
-      d3.annotationBadge, 
-      {"subject":{"radius": 10 }}
-    )
-
-    const makeAnnotations = d3.annotation()
-      .type(type)
-      //.accessors({ 
-      //  x: function(d){ return x(new Date(d.x))},
-      //  y: function(d){ return y(d.y) }
-      //})
-      .annotations(annotations)
-
-    d3.select("svg")
-      .append("g")
-      .attr("class", "annotation-group")
-      .call(makeAnnotations)
-
+        d3.selectAll(".mOverDelete").remove();
+    };
 });
 
 
