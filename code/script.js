@@ -77,6 +77,14 @@ var rowConverter = function(d) {
     };
 } 
 
+// Define the div for the tooltip
+var div = d3.select("body").append("div")	
+    .attr("class", "tooltip")				
+    .style("opacity", 0)
+    .style("position", "absolute")
+    ;
+
+// get data and make the viz
 d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
 	var dataset = data,
@@ -86,6 +94,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 		newsprice = price+"price",
 		newshead = price+"news"
 	;
+
 
 	//extract news
 	news = dataset.map(
@@ -106,7 +115,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
 
 	news = boo(news)
-	console.log(news)
+	//console.log(news)
 
     // set X and Y axis scale
 	var xScale = d3.scaleTime()
@@ -154,6 +163,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	svg.append("g")
 		.attr("class", "y axis")
 		.call(d3.axisLeft(yScale))
+		.attr("class", "clickDelete")
 	;
 
 	svg.append("path")
@@ -171,7 +181,13 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
     	.data(news)
     	.enter()
     	.append("circle")
-    	.attr("r", 5)
+    	.attr("r", function (d){
+    		if(isNaN(d.price)) {
+    			return 0;
+    		} else {
+    			return 5;
+    		}
+    	})
     	.attr("cx", function(d,i){
     		return xScale(d.date);
     	})
@@ -201,13 +217,49 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
         .attr("id","ylabel")
     ;
 
+    //mouseover the news
+    function mOver (d, i) {
+        d3.select(this)
+          .transition()
+          .duration(0)
+          .style("fill", d3.color("lightblue") )
+        ;
+
+        div.transition()		
+            .duration(0)		
+            .style("opacity", .9)
+        ;
+
+        div.html(d.head)
+        	.style("left", xScale(d.date)+ "px")
+        	.style("top", yScale(d.price)+ "px")
+        ;
+        
+    };
+
+    function mOut (d, i) {
+        d3.select(this).transition()
+          .duration(0)
+          .style("fill", d3.color("steelblue") )
+        ;
+		
+		div.transition()		
+            .duration("0")		
+            .style("opacity", 0)
+        ;
+
+        div.style("left", "0px")
+	        	.style("top", "0px");
+
+    };
+
     // make a button for each stock
     for(var i = 0; i < count; ++i) {
 
 	    svg.append("rect")
 	        .attr('fill', "rgb(200,200,200)")
 	        .attr("y", i*15)
-	        .attr("x", width+10)
+	        .attr("x", width+20)
 	        .attr("width", buttonw)
 	        .attr("height", buttonh)
 	        //.attr("id", function(d, i) { return 'name'+i; })
@@ -222,7 +274,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
 	    svg.append("text")
             .attr("y", i*15 +10)
-            .attr("x", width + buttonw + 20)
+            .attr("x", width + buttonw + 30)
             .text(tickers[i])
         ;
     }
@@ -231,14 +283,14 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
     function tickerButtonmOver (d, i) {
         d3.select(this)
           .transition()
-          .duration('50')
+          .duration(0)
           .attr('opacity', '.5')
         ;
     };
 
     function tickerButtonmOut (d, i) {
         d3.select(this).transition()
-          .duration('50')
+          .duration(0)
           .attr('opacity', '1')
         ;
     };
@@ -247,6 +299,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
         price = tickers[arguments[0]];
         newsdate = price+"date";
 		newsprice = price+"price";
+		newshead = price+"news";
         t = price;
 
 		var yScale = d3.scaleLinear()
@@ -276,6 +329,11 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	    ; 
         
         d3.selectAll(".clickDelete").remove();
+		
+		svg.append("g")
+			.attr("class", "y axis")
+			.call(d3.axisLeft(yScale))
+			.attr("class", "clickDelete")
 		
 		svg.append("path")
 			.datum(dataset)
@@ -323,7 +381,13 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	    	.data(news)
 	    	.enter()
 	    	.append("circle")
-	    	.attr("r", 5)
+	    	.attr("r", function (d){
+	    		if(isNaN(d.price)) {
+	    			return 0;
+	    		} else {
+	    			return 5;
+	    		}
+	    	})
 	    	.attr("cx", function(d,i){
 	    		return xScale(d.date);
 	    	})
@@ -336,42 +400,45 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
             .on('mouseout', mOut)
 	    ;
 
+	    //mouseover the news
+	    function mOver (d, i) {
+	        d3.select(this)
+	          .transition()
+	          .duration(0)
+	          .style("fill", d3.color("lightblue") )
+	        ;
+
+	        div.transition()		
+	            .duration(0)		
+	            .style("opacity", .9)
+	        ;
+
+	        div.html(d.head)
+	        	.style("left", xScale(d.date)+ "px")
+	        	.style("top", yScale(d.price)+ "px")
+	        ;
+	        
+	    };
+
+	    function mOut (d, i) {
+	        d3.select(this).transition()
+	          .duration(0)
+	          .style("fill", d3.color("steelblue") )
+	        ;
+			
+			div.transition()		
+	            .duration(0)		
+	            .style("opacity", 0)
+
+	        div.style("left", "-1000px")
+	        	.style("top", "-1000px")
+	        ;
+
+	    };
+
     };
-    //mouseover the news
-    function mOver (d, i) {
-        d3.select(this)
-          .transition()
-          .duration('50')
-          .style("fill", d3.color("lightblue") )
-        ;
 
-        d3.select(this)
-          .append("text")
-          //.style('fill-opacity', 1)
-          .text(function (d) {
-            console.log(d.head)
-            return d.head;
-          })
-	      .attr("y", function (d) {
-	        return yScale(d.price)+10;
-	      })
-	      .attr("x", function (d) {
-	        return xScale(d.date);
-	      })
-          .attr("class", "mOverDelete")
-        ;
 
-        
-    };
-
-    function mOut (d, i) {
-        d3.select(this).transition()
-          .duration('50')
-          .style("fill", d3.color("steelblue") )
-        ;
-
-        d3.selectAll(".mOverDelete").remove();
-    };
 });
 
 
