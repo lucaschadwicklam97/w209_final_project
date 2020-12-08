@@ -144,7 +144,8 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 		.attr("height", iheight + xAxisSpace + xLabelSpace) 
 		//xAxisSpace and xLabelSpace reveal x axis and label
 	    .append("g")
-	    .attr("transform", "translate(" + yAxisSpace + "," + margin.top + ")");
+	    .attr("transform", "translate(" + yAxisSpace + "," + margin.top + ")")
+	;
 
 	svg.append("g")
 	    .attr("class", "x axis")
@@ -253,6 +254,14 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
     };
 
+	svg.append("text")
+        .attr("y", 50)
+        .attr("x", 50)
+        .attr("font-size", 20)
+        .text("Current ticker: " + price)
+        .attr("class", "clickDelete")
+    ;
+
     // make a button for each stock
     for(var i = 0; i < count; ++i) {
 
@@ -277,6 +286,8 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
             .attr("x", width + buttonw + 30)
             .text(tickers[i])
         ;
+
+        
     }
 
     // add functions for mouseover and mouseout
@@ -435,6 +446,14 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	        ;
 
 	    };
+
+	    svg.append("text")
+	        .attr("y", 50)
+	        .attr("x", 50)
+	        .attr("font-size", 20)
+	        .text("Current ticker: " + price)
+	        .attr("class", "clickDelete")
+    	;
 
     };
 
