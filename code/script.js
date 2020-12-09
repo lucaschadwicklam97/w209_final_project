@@ -17,7 +17,7 @@ var width = 1000,
     buttonh = 10, 
     buttonw = 10,
     //reveal buttons
-    buttonSpace = 100
+    buttonSpace = 150
 ;
 
 var margin = ({top: 0, right: 0, bottom: 0, left: 0}),
@@ -28,6 +28,7 @@ var parseDate = d3.timeParse("%m/%d/%y");
 var formDate = d3.timeFormat("%m/%d/%y");
 
 var tickers = ['AMZN', 'FB', 'GOOGL', 'HZNP', 'MRNA', 'NFLX', 'NKTR', 'SUPN', 'TSLA', 'ZGNX']
+var tickerLabels = ['AMZN - Amazon', 'FB - Facebook', 'GOOGL - Google', 'HZNP - Horizon', 'MRNA - Moderna', 'NFLX - Netflix', 'NKTR - Nektar', 'SUPN - Supernus', 'TSLA - Tesla', 'ZGNX - Zogenix']
 
 var count = d3.set(tickers).size();
 
@@ -120,10 +121,14 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
     // set X and Y axis scale
 	var xScale = d3.scaleTime()
-		.domain([
-			d3.min(dataset, function(d) { return d.date }), 
-			d3.max(dataset, function(d) { return d.date })
-		])
+		.domain(
+			d3.extent(dataset, function(d) { return d.date;}
+				)
+			//[
+			// d3.min(dataset, function(d) { return d.date }), 
+			// d3.max(dataset, function(d) { return d.date })
+		//]
+		)
 		.range([width - iwidth, iwidth]);
 
 	var yScale = d3.scaleLinear()
@@ -133,10 +138,17 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 		])
 		.range([iheight, 0]);
 
+	// add brush
+	var brush = d3.brushX()                   // Add the brush feature using the d3.brush function
+        .extent( [ [0,0], [iwidth,iheight] ] )  // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+        .on("end", updateChart) 
+
+	// add line
 	var line = d3.line()
 		.x(function(d) { return xScale(d.date); })
 		.y(function(d) { return yScale(d[price]); })
-                .curve(d3.curveMonotoneX); 
+        .curve(d3.curveMonotoneX); 
+
 
 	var svg = d3.select("body")
 		.append("svg")
@@ -148,7 +160,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	    .attr("transform", "translate(" + yAxisSpace + "," + margin.top + ")")
 	;
 
-	svg.append("g")
+	xAxis = svg.append("g")
 	    .attr("class", "x axis")
 	    .attr("transform", "translate(0, 500)")
 		.call(d3.axisBottom(xScale)
@@ -178,6 +190,58 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
         .attr("class", "clickDelete")
     ;
 
+    //add brush
+    svg.append("g")
+       .attr("class", "brush")
+       .call(brush);
+	
+	// A function that set idleTimeOut to null
+	var idleTimeout
+    	function idled() { idleTimeout = null; }
+	
+	// A function that update the chart for given boundaries
+    function updateChart() {
+
+      // What are the selected boundaries?
+      extent = d3.event.selection
+      // If no selection, back to initial coordinate. Otherwise, update X axis domain
+      if(!extent){
+        if (!idleTimeout) return idleTimeout = setTimeout(idled, 350); // This allows to wait a little bit
+        xScale.domain([ 4,8])
+      } else {
+        xScale.domain([ xScale.invert(extent[0]), xScale.invert(extent[1]) ])
+      	svg.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
+      }
+
+      // Update axis and line position
+
+      xAxis.transition().duration(1000).call(d3.axisBottom(xScale))
+      
+      svg.select('.line')
+          .transition()
+          .duration(1000)
+          .attr("d", d3.line()
+            .x(function(d) { return xScale(d.date) })
+            .y(function(d) { return yScale(d[price]) })
+            .curve(d3.curveMonotoneX)
+          )
+    }
+
+    // If user double click, reinitialize the chart
+    svg.on("dblclick",function(){
+	    xScale.domain(d3.extent(dataset, function(d) { return d.date; }))
+	    
+	    xAxis.transition().call(d3.axisBottom(xScale))
+    
+	    svg.select('.line')
+	        .transition()
+	        .attr("d", d3.line()
+	          .x(function(d) { return xScale(d.date) })
+	          .y(function(d) { return yScale(d.price) })
+	          .curve(d3.curveMonotoneX)
+	      	)
+    });
+
     //add circles for news
     svg.selectAll("circle")
     	.data(news)
@@ -185,6 +249,8 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
     	.append("circle")
     	.attr("r", function (d){
     		if(isNaN(d.price)) {
+    			return 0;
+    		} else if (d.price == 0){
     			return 0;
     		} else {
     			return 5;
@@ -232,10 +298,11 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
             .style("opacity", .9)
         ;
 
-        div.html(d.head)
+        div.html(d.head + "</br></br>" + "Price: $" + d.price)
         	.style("left", xScale(d.date)+ "px")
-        	.style("top", yScale(d.price)+ "px")
+        	.style("top", yScale(d.price)+ 160 + "px")
         ;
+
         
     };
 
@@ -263,6 +330,14 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
         .attr("class", "clickDelete")
     ;
 
+    svg.append("text")
+        .attr("y", 70)
+        .attr("x", 50)
+        .attr("font-size", 14)
+        .text("(Use buttons at right to change ticker)")
+        .attr("class", "clickDelete")
+	;
+
     // make a button for each stock
     for(var i = 0; i < count; ++i) {
 
@@ -285,7 +360,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	    svg.append("text")
             .attr("y", i*15 +10)
             .attr("x", width + buttonw + 30)
-            .text(tickers[i])
+            .text(tickerLabels[i])
         ;
 
         
@@ -328,16 +403,19 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 		});
 
 		var xScale = d3.scaleTime()
-			.domain([
-				d3.min(filteredDates, function(d) { return d.date }),
-				d3.max(dataset, function(d) { return d.date })
-			])
+			.domain(d3.extent(filteredDates, function(d) { return d.date;}
+				)
+			// 	[
+			// 	d3.min(filteredDates, function(d) { return d.date }),
+			// 	d3.max(dataset, function(d) { return d.date })
+			// ]
+			)
 			.range([width - iwidth, iwidth]);
 
 		var line = d3.line()
 			.x(function(d) { return xScale(d.date); })
 			.y(function(d) { return yScale(d[price]); })
-	                .curve(d3.curveMonotoneX)
+	        .curve(d3.curveMonotoneX)
 	    ; 
         
         d3.selectAll(".clickDelete").remove();
@@ -396,10 +474,12 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	    	.attr("r", function (d){
 	    		if(isNaN(d.price)) {
 	    			return 0;
+	    		} else if (d.price == 0){
+	    			return 0;
 	    		} else {
 	    			return 5;
 	    		}
-	    	})
+	    	})	
 	    	.attr("cx", function(d,i){
 	    		return xScale(d.date);
 	    	})
@@ -414,6 +494,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
 	    //mouseover the news
 	    function mOver (d, i) {
+
 	        d3.select(this)
 	          .transition()
 	          .duration(0)
@@ -425,9 +506,9 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	            .style("opacity", .9)
 	        ;
 
-	        div.html(d.head)
+	        div.html(d.head + "</br></br>" + "Price: $" + d.price)
 	        	.style("left", xScale(d.date)+ "px")
-	        	.style("top", yScale(d.price)+ "px")
+	        	.style("top", yScale(d.price)+ 160 + "px")
 	        ;
 	        
 	    };
@@ -453,6 +534,14 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	        .attr("x", 50)
 	        .attr("font-size", 20)
 	        .text("Current ticker: " + price)
+	        .attr("class", "clickDelete")
+    	;
+
+    	svg.append("text")
+	        .attr("y", 70)
+	        .attr("x", 50)
+	        .attr("font-size", 14)
+	        .text("(Use buttons at right to change ticker)")
 	        .attr("class", "clickDelete")
     	;
 
