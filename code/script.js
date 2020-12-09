@@ -160,6 +160,12 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	    .attr("transform", "translate(" + yAxisSpace + "," + margin.top + ")")
 	;
 
+	svg.append("rect")
+		.attr("height", "86%")
+		.attr("width", "82%")
+		.style("fill", "grey")
+		.style("opacity", 0.1);
+
 	xAxis = svg.append("g")
 	    .attr("class", "x axis")
 	    .attr("transform", "translate(0, 500)")
@@ -343,7 +349,7 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 
 	    svg.append("rect")
 	        .attr('fill', "rgb(200,200,200)")
-	        .attr("y", i*15)
+	        .attr("y", i*20)
 	        .attr("x", width+20)
 	        .attr("width", buttonw)
 	        .attr("height", buttonh)
@@ -352,17 +358,16 @@ d3.csv("./data/stockdata.csv", rowConverter, function(data) {
 	        .on('mouseout', tickerButtonmOut)
 	        .on('click', function(){
 	        	// get the index of the button by dividing y by 15 d3.select(this).attr("y")/15 
-	        	tickerButtonClick(d3.select(this).attr("y")/15)
+	        	tickerButtonClick(d3.select(this).attr("y")/20)
 	        	;
 	        })
 	    ;
 
 	    svg.append("text")
-            .attr("y", i*15 +10)
+            .attr("y", i*20 +10)
             .attr("x", width + buttonw + 30)
             .text(tickerLabels[i])
         ;
-
         
     }
 
